@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+server/node_modules/
+client/node_modules/
+
+# SQLite database
+*.sqlite
+*.sqlite3
+
+# Environment
+.env
+.env.local
+
+# Build output
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Package locks (we use npm workspaces)
+package-lock.json

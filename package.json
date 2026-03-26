@@ -1,0 +1,12 @@
+{
+  "name": "game-vault",
+  "version": "1.0.0",
+  "scripts": {
+    "install:all": "npm install && npm install --prefix server && npm install --prefix client",
+    "dev": "npm run --prefix server dev & npm run --prefix client dev",
+    "server": "npm run --prefix server start",
+    "client": "npm run --prefix client dev",
+    "build": "npm run --prefix client build",
+    "start": "npm run --prefix server start"
+  }
+}

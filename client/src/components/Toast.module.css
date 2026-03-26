@@ -1,0 +1,28 @@
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  background: var(--bg-surface);
+  border: 1px solid var(--bg-hover);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  animation: slideIn 0.3s ease-out;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.success {
+  border-left: 3px solid var(--success);
+}
+
+.success .icon {
+  color: var(--success);
+}
+
+.error {
+  border-left: 3px solid var(--danger);
+}
+
+.error .icon {
+  color: var(--danger);
+}

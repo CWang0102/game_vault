@@ -1,0 +1,162 @@
+.card {
+  position: relative;
+  background: var(--bg-surface);
+  border: 1px solid var(--bg-hover);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
+}
+
+.card:hover {
+  transform: scale(1.02) rotate(0deg) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border-color: var(--amber-dim);
+}
+
+.statusBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--status-color);
+  box-shadow: 0 0 10px var(--status-color);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.statusBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+}
+
+.actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.actionsVisible {
+  opacity: 1;
+}
+
+.actionBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  color: var(--text-muted);
+  background: var(--bg-elevated);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.actionBtn:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.deleteBtn:hover {
+  color: var(--danger);
+  background: rgba(248, 113, 113, 0.1);
+}
+
+.title {
+  font-family: var(--font-body);
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.3;
+  padding-right: 8px;
+}
+
+.rating {
+  display: flex;
+  align-items: center;
+}
+
+.comment {
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--bg-elevated);
+}
+
+.date {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.statusBtn {
+  padding: 6px 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--bg-hover);
+  transition: all 0.2s ease;
+}
+
+.statusBtn:hover {
+  background: var(--bg-hover);
+  border-color: var(--amber-dim);
+}
+
+.statusBtnLabel {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+}
+
+/* Corner decorations */
+.cornerTL, .cornerBR {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-color: var(--text-muted);
+  border-style: solid;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.card:hover .cornerTL,
+.card:hover .cornerBR {
+  opacity: 0.3;
+}
+
+.cornerTL {
+  top: 8px;
+  right: 8px;
+  border-width: 1px 1px 0 0;
+}
+
+.cornerBR {
+  bottom: 8px;
+  left: 8px;
+  border-width: 0 0 1px 1px;
+}
