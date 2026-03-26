@@ -7,6 +7,7 @@
     "server": "npm run --prefix server start",
     "client": "npm run --prefix client dev",
     "build": "npm run --prefix client build",
-    "start": "npm run --prefix server start"
+    "start": "npm run --prefix server start",
+    "setup:root": "node server/scripts/setupRoot.js"
   }
 }

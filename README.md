@@ -52,37 +52,17 @@ Serves the built frontend along with the API on port 3001.
 
 ## First-Time Setup
 
-After starting the server for the first time, you need to create a root user manually in the database.
-
-1. Open `server/database.sqlite` with a SQLite browser (e.g., [DB Browser for SQLite](https://sqlitebrowser.org/))
-2. Run the following SQL:
-
-```sql
-INSERT INTO users (email, password_hash, role, status)
-VALUES (
-  'admin@example.com',
-  '$2a$10$...',  -- bcrypt hash of your password
-  'root',
-  'approved'
-);
-```
-
-Or use the command line:
+After starting the server for the first time, create a root user to access the app:
 
 ```bash
-sqlite3 server/database.sqlite
+# Interactive password prompt
+npm run setup:root -- --email=admin@example.com
+
+# Or supply password directly (useful for scripting)
+npm run setup:root -- --email=admin@example.com --password=yourpassword
 ```
 
-```sql
-INSERT INTO users (email, password_hash, role, status)
-VALUES ('admin@example.com', '$2a$10$...', 'root', 'approved');
-```
-
-To generate the bcrypt hash, you can use Node.js:
-
-```bash
-node -e "const bcrypt = require('bcryptjs'); bcrypt.hash('your-password', 10).then(h => console.log(h))"
-```
+If the email already exists in the database, its role is upgraded to `root`. Otherwise a new root user is created with `approved` status.
 
 The root user bypasses the approval requirement and can access all features immediately.
 
