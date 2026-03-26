@@ -50,6 +50,77 @@ npm run server
 
 Serves the built frontend along with the API on port 3001.
 
+## Deployment to VPS
+
+### 1. Transfer Files to VPS
+
+```bash
+scp -r game_recorder user@your-vps:/path/to/game_vault
+```
+
+### 2. Install Dependencies
+
+```bash
+cd game_vault && npm install
+```
+
+### 3. Set Environment Variables
+
+Create `server/.env`:
+
+```env
+JWT_SECRET=your-secure-random-string
+PORT=3001
+```
+
+### 4. Configure Nginx
+
+```nginx
+server {
+    listen 80;
+    server_name yourdomain.com;
+
+    # Frontend static files
+    root /path/to/game_vault/client/dist;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Proxy API to backend
+    location /api {
+        proxy_pass http://localhost:3001;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
+
+### 5. DNS Configuration
+
+Point your domain's A record to your VPS IP address.
+
+### 6. Enable SSL (Recommended)
+
+```bash
+sudo certbot --nginx -d yourdomain.com
+```
+
+### 7. Run with PM2
+
+For process management and auto-restart:
+
+```bash
+npm install -g pm2
+pm2 start server/index.js --name game-vault
+pm2 save
+pm2 startup
+```
+
 ## First-Time Setup
 
 After starting the server for the first time, create a root user to access the app:
