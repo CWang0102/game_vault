@@ -1,43 +1,6 @@
-import initSqlJs from 'sql.js';
-import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { getDb, initDatabase } from '../db/database.js';
 import bcrypt from 'bcryptjs';
 import readline from 'readline';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const DB_PATH = join(__dirname, '..', 'database.sqlite');
-
-async function getDb() {
-  const SQL = await initSqlJs();
-  if (existsSync(DB_PATH)) {
-    const buffer = readFileSync(DB_PATH);
-    return new SQL.Database(buffer);
-  }
-  throw new Error('Database not found. Run the server first to create it.');
-}
-
-function saveDatabase(db) {
-  const data = db.export();
-  const buffer = Buffer.from(data);
-  writeFileSync(DB_PATH, buffer);
-}
-
-function statementToObjects(stmt) {
-  const columns = stmt.getColumnNames();
-  const results = [];
-  while (stmt.step()) {
-    const row = stmt.get();
-    const obj = {};
-    columns.forEach((col, i) => {
-      obj[col] = row[i];
-    });
-    results.push(obj);
-  }
-  stmt.free();
-  return results;
-}
 
 async function promptPassword() {
   const rl = readline.createInterface({
@@ -71,15 +34,15 @@ async function main() {
 
   email = email.toLowerCase().trim();
 
-  const db = await getDb();
+  await initDatabase();
+  const db = getDb();
 
   // Check if user exists
   const existingUser = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
 
   if (existingUser) {
     // Update role to root
-    db.run('UPDATE users SET role = ?, status = ? WHERE id = ?', ['root', 'approved', existingUser.id]);
-    saveDatabase(db);
+    db.prepare('UPDATE users SET role = ?, status = ? WHERE id = ?').run('root', 'approved', existingUser.id);
     console.log(`Updated user ${email} to root/admin role.`);
   } else {
     // Need password to create new user
@@ -100,8 +63,7 @@ async function main() {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    db.run('INSERT INTO users (email, password_hash, role, status) VALUES (?, ?, ?, ?)', [email, passwordHash, 'root', 'approved']);
-    saveDatabase(db);
+    db.prepare('INSERT INTO users (email, password_hash, role, status) VALUES (?, ?, ?, ?)').run(email, passwordHash, 'root', 'approved');
     console.log(`Created new root user: ${email}`);
   }
 }
