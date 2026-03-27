@@ -10,6 +10,7 @@ import { dirname, join } from 'path';
 import authRoutes from './routes/auth.js';
 import gamesRoutes from './routes/games.js';
 import usersRoutes from './routes/users.js';
+import igdbRoutes from './routes/igdb.js';
 import { initDatabase } from './db/database.js';
 import { runMigrations } from './db/migrate.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
@@ -28,7 +29,7 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
       scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:"],
+      imgSrc: ["'self'", "data:", "https://images.igdb.com"],
     },
   },
   crossOriginEmbedderPolicy: false,
@@ -80,6 +81,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/games', gamesRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/igdb', igdbRoutes);
 
 // Serve static files in production
 if (isProduction) {

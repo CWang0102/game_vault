@@ -64,6 +64,18 @@ export async function runMigrations() {
     console.error('Migration error (games table):', e.message);
   }
 
+  // 4. Add cover_url column to games if not exists
+  try {
+    const tableInfo = db.prepare('PRAGMA table_info(games)').all();
+    const hasCoverUrl = tableInfo.some(col => col.name === 'cover_url');
+    if (!hasCoverUrl) {
+      db.prepare('ALTER TABLE games ADD COLUMN cover_url TEXT').run();
+      console.log('Added cover_url column to games table');
+    }
+  } catch (e) {
+    console.error('Migration error (cover_url):', e.message);
+  }
+
   saveDatabase();
   console.log('Migrations complete');
 }

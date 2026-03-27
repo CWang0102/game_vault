@@ -15,6 +15,7 @@ const createGameValidation = [
   body('status').optional().isIn(gameStatusValues).withMessage('Invalid status value'),
   body('rating').optional().isInt({ min: 1, max: 5 }).withMessage('Rating must be between 1 and 5'),
   body('comment').optional().isString(),
+  body('cover_url').optional().isURL().withMessage('Invalid cover URL'),
 ];
 
 const updateGameValidation = [
@@ -23,6 +24,7 @@ const updateGameValidation = [
   body('status').optional().isIn(gameStatusValues).withMessage('Invalid status value'),
   body('rating').optional().isInt({ min: 1, max: 5 }).withMessage('Rating must be between 1 and 5'),
   body('comment').optional().isString(),
+  body('cover_url').optional().isURL().withMessage('Invalid cover URL'),
 ];
 
 const listValidation = [
@@ -76,16 +78,17 @@ router.post('/', requireRoot, createGameValidation, (req, res, next) => {
     }
 
     const db = getDb();
-    const { title, status, rating, comment } = req.body;
+    const { title, status, rating, comment, cover_url } = req.body;
 
     const result = db.prepare(`
-      INSERT INTO games (title, status, rating, comment)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO games (title, status, rating, comment, cover_url)
+      VALUES (?, ?, ?, ?, ?)
     `).run(
       title.trim(),
       status || 'to_play',
       rating || null,
-      comment?.trim() || null
+      comment?.trim() || null,
+      cover_url || null
     );
 
     const game = db.prepare('SELECT * FROM games WHERE id = ?').get(result.lastInsertRowid);
@@ -105,7 +108,7 @@ router.put('/:id', requireRoot, updateGameValidation, (req, res, next) => {
 
     const db = getDb();
     const { id } = req.params;
-    const { title, status, rating, comment } = req.body;
+    const { title, status, rating, comment, cover_url } = req.body;
 
     const existingGame = db.prepare('SELECT * FROM games WHERE id = ?').get(id);
     if (!existingGame) {
@@ -118,6 +121,7 @@ router.put('/:id', requireRoot, updateGameValidation, (req, res, next) => {
           status = COALESCE(?, status),
           rating = COALESCE(?, rating),
           comment = COALESCE(?, comment),
+          cover_url = COALESCE(?, cover_url),
           updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `).run(
@@ -125,6 +129,7 @@ router.put('/:id', requireRoot, updateGameValidation, (req, res, next) => {
       status || null,
       rating || null,
       comment?.trim() || null,
+      cover_url !== undefined ? (cover_url || null) : null,
       id
     );
 

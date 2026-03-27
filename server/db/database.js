@@ -32,7 +32,7 @@ export async function initDatabase() {
     CREATE TABLE IF NOT EXISTS games (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT NOT NULL,
-      status TEXT CHECK(status IN ('completed', 'to_play', 'given_up')) DEFAULT 'to_play',
+      status TEXT CHECK(status IN ('completed', 'to_play', 'given_up', 'playing')) DEFAULT 'to_play',
       rating INTEGER CHECK(rating >= 1 AND rating <= 5),
       comment TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

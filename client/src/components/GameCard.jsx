@@ -38,6 +38,12 @@ export default function GameCard({ game, onEdit, onDelete, onStatusChange, style
     >
       <div className={styles.statusBar} />
 
+      {game.cover_url && (
+        <div className={styles.coverWrapper}>
+          <img src={game.cover_url} alt={game.title} className={styles.cover} />
+        </div>
+      )}
+
       <header className={styles.header}>
         <div className={styles.statusBadge} style={{ color: config.color }}>
           <StatusIcon size={12} />

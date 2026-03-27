@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Gamepad2 } from 'lucide-react';
 import StarRating from './StarRating';
 import styles from './GameModal.module.css';
 
 const STATUS_OPTIONS = [
   { value: 'to_play', label: 'To Play' },
+  { value: 'playing', label: 'Playing' },
   { value: 'completed', label: 'Completed' },
   { value: 'given_up', label: 'Given Up' },
 ];
@@ -14,8 +15,13 @@ export default function GameModal({ game, onSave, onClose }) {
   const [status, setStatus] = useState('to_play');
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
+  const [coverUrl, setCoverUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const debounceTimer = useRef(null);
+  const wrapperRef = useRef(null);
 
   useEffect(() => {
     if (game) {
@@ -23,8 +29,54 @@ export default function GameModal({ game, onSave, onClose }) {
       setStatus(game.status || 'to_play');
       setRating(game.rating || 0);
       setComment(game.comment || '');
+      setCoverUrl(game.cover_url || '');
     }
   }, [game]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
+        setShowSuggestions(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const searchIGDB = useCallback(async (query) => {
+    if (!query.trim()) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`/api/igdb/search?q=${encodeURIComponent(query)}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      setSuggestions(data.games || []);
+      setShowSuggestions(true);
+    } catch {
+      // silently fail — search is non-critical
+    }
+  }, []);
+
+  function handleTitleChange(e) {
+    const value = e.target.value;
+    setTitle(value);
+    clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => searchIGDB(value), 350);
+  }
+
+  function handleSuggestionClick(suggestion) {
+    setTitle(suggestion.name);
+    setCoverUrl(suggestion.cover_url || '');
+    setSuggestions([]);
+    setShowSuggestions(false);
+  }
 
   useEffect(() => {
     function handleEsc(e) {
@@ -51,6 +103,7 @@ export default function GameModal({ game, onSave, onClose }) {
         status,
         rating: rating || null,
         comment: comment.trim() || null,
+        cover_url: coverUrl || null,
       });
     } finally {
       setLoading(false);
@@ -61,9 +114,13 @@ export default function GameModal({ game, onSave, onClose }) {
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
-          <div className={styles.headerIcon}>
-            <Gamepad2 size={24} />
-          </div>
+          {coverUrl ? (
+            <img src={coverUrl} alt="" className={styles.headerCover} />
+          ) : (
+            <div className={styles.headerIcon}>
+              <Gamepad2 size={24} />
+            </div>
+          )}
           <h2 className={styles.title}>{game ? 'EDIT GAME' : 'ADD GAME'}</h2>
           <button onClick={onClose} className={styles.closeBtn}>
             <X size={20} />
@@ -73,16 +130,44 @@ export default function GameModal({ game, onSave, onClose }) {
         <form onSubmit={handleSubmit} className={styles.form}>
           {error && <div className={styles.error}>{error}</div>}
 
-          <div className={styles.field}>
+          <div className={styles.field} ref={wrapperRef}>
             <label htmlFor="title">GAME TITLE</label>
-            <input
-              id="title"
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="The Legend of Zelda: Tears of the Kingdom"
-              autoFocus
-            />
+            <div className={styles.autocompleteWrapper}>
+              <input
+                id="title"
+                type="text"
+                value={title}
+                onChange={handleTitleChange}
+                onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                placeholder="The Legend of Zelda: Tears of the Kingdom"
+                autoFocus
+                autoComplete="off"
+              />
+              {showSuggestions && suggestions.length > 0 && (
+                <ul className={styles.suggestions}>
+                  {suggestions.map((suggestion) => (
+                    <li
+                      key={suggestion.name}
+                      className={styles.suggestionItem}
+                      onMouseDown={() => handleSuggestionClick(suggestion)}
+                    >
+                      {suggestion.cover_url ? (
+                        <img
+                          src={suggestion.cover_url.replace('t_cover_big', 't_thumb')}
+                          alt=""
+                          className={styles.suggestionCover}
+                        />
+                      ) : (
+                        <div className={styles.suggestionCoverPlaceholder}>
+                          <Gamepad2 size={16} />
+                        </div>
+                      )}
+                      <span>{suggestion.name}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
 
           <div className={styles.field}>

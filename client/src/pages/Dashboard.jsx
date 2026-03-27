@@ -12,9 +12,10 @@ const STATUS_LABELS = {
   completed: 'COMPLETED',
   to_play: 'TO PLAY',
   given_up: 'GIVEN UP',
+  playing: 'PLAYING',
 };
 
-const STATUS_COUNTS_INITIAL = { all: 0, completed: 0, to_play: 0, given_up: 0 };
+const STATUS_COUNTS_INITIAL = { all: 0, completed: 0, to_play: 0, given_up: 0, playing: 0 };
 
 export default function Dashboard() {
   const { user, logout, token, isRoot } = useAuth();
@@ -39,11 +40,12 @@ export default function Dashboard() {
       const data = await res.json();
       setGames(data.games);
 
-      const counts = { all: data.games.length, completed: 0, to_play: 0, given_up: 0 };
+      const counts = { all: data.games.length, completed: 0, to_play: 0, given_up: 0, playing: 0 };
       data.games.forEach((g) => {
         if (g.status === 'completed') counts.completed++;
         else if (g.status === 'to_play') counts.to_play++;
         else if (g.status === 'given_up') counts.given_up++;
+        else if (g.status === 'playing') counts.playing++;
       });
       setStatusCounts((prev) => ({ ...prev, ...counts, all: data.games.length }));
     } catch (err) {
