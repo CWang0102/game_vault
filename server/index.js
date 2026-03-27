@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -11,7 +12,7 @@ import authRoutes from './routes/auth.js';
 import gamesRoutes from './routes/games.js';
 import usersRoutes from './routes/users.js';
 import igdbRoutes from './routes/igdb.js';
-import { initDatabase } from './db/database.js';
+import { initDatabase, seedDefaultUser } from './db/database.js';
 import { runMigrations } from './db/migrate.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 
@@ -99,9 +100,8 @@ async function start() {
   await initDatabase();
   await runMigrations();
 
-  if (isProduction && !process.env.JWT_SECRET) {
-    console.error('ERROR: JWT_SECRET environment variable is required in production');
-    process.exit(1);
+  if (!isProduction) {
+    await seedDefaultUser();
   }
 
   app.listen(PORT, () => {

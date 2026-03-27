@@ -52,14 +52,18 @@ export default function GameModal({ game, onSave, onClose }) {
     }
     try {
       const token = localStorage.getItem('token');
+      console.log('[IGDB Search] Query:', query, 'Token exists:', !!token);
       const res = await fetch(`/api/igdb/search?q=${encodeURIComponent(query)}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      console.log('[IGDB Search] Response status:', res.status);
       if (!res.ok) return;
       const data = await res.json();
+      console.log('[IGDB Search] Received games:', data.games?.length || 0);
       setSuggestions(data.games || []);
       setShowSuggestions(true);
-    } catch {
+    } catch (err) {
+      console.error('[IGDB Search] Error:', err);
       // silently fail — search is non-critical
     }
   }, []);

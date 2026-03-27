@@ -2,6 +2,7 @@ import initSqlJs from 'sql.js';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import bcrypt from 'bcryptjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -49,6 +50,19 @@ export function saveDatabase() {
     const data = db.export();
     const buffer = Buffer.from(data);
     writeFileSync(DB_PATH, buffer);
+  }
+}
+
+export async function seedDefaultUser() {
+  const email = 'root@localhost';
+  const existingUser = db.exec(`SELECT * FROM users WHERE email = '${email}'`);
+
+  if (existingUser.length === 0 || existingUser[0].values.length === 0) {
+    const passwordHash = await bcrypt.hash('root', 10);
+    db.run('INSERT INTO users (email, password_hash, role, status) VALUES (?, ?, ?, ?)',
+      [email, passwordHash, 'root', 'approved']);
+    saveDatabase();
+    console.log('Created default root user: root@localhost / root');
   }
 }
 

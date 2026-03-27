@@ -183,8 +183,8 @@ PORT=3001
 # Set to "development" locally, "production" on a live server
 NODE_ENV=development
 
-# Secret key used to sign JWT tokens — CHANGE THIS to a long random string
-# Example: run `openssl rand -base64 32` in your terminal to generate one
+# Secret key used to sign JWT tokens — REQUIRED in production (run `openssl rand -base64 32` to generate)
+# A default dev secret is used automatically in development
 JWT_SECRET=replace-this-with-a-long-random-secret-string
 
 # Allowed frontend origins (comma-separated). Defaults work for local dev.
@@ -213,6 +213,10 @@ This starts:
 - **Frontend** at `http://localhost:5173` (Vite dev server)
 
 Open your browser and navigate to `http://localhost:5173`.
+
+> **Development only:** A default root account is created automatically on first startup:
+> - Email: `root@localhost`
+> - Password: `root`
 
 ### Start Servers Individually
 

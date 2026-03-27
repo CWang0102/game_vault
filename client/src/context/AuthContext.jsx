@@ -14,12 +14,17 @@ export function AuthProvider({ children }) {
 
   async function validateToken() {
     try {
+      const token = localStorage.getItem('token');
       const res = await fetch(`${API_BASE}/auth/me`, {
         credentials: 'include',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (res.ok) {
         const data = await res.json();
         setUser(data.user);
+      } else if (res.status === 401 || res.status === 403) {
+        // Token invalid - clear it
+        localStorage.removeItem('token');
       }
     } catch {
       // Network error or invalid token - that's okay for initial load
@@ -40,6 +45,10 @@ export function AuthProvider({ children }) {
     // Server sets httpOnly cookie and also returns user data
     if (data.user) {
       setUser(data.user);
+    }
+    // Save token to localStorage for API auth
+    if (data.token) {
+      localStorage.setItem('token', data.token);
     }
     return data;
   }
