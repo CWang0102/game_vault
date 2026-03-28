@@ -1,17 +1,19 @@
 import { useState } from 'react';
-import { Pencil, Trash2, Trophy, Clock, XCircle } from 'lucide-react';
+import { Pencil, CheckCircle, Trophy, Clock, XCircle } from 'lucide-react';
 import StarRating from './StarRating';
 import styles from './GameCard.module.css';
 
 const STATUS_CONFIG = {
   completed: { label: 'COMPLETED', color: 'var(--success)', icon: Trophy },
   to_play: { label: 'TO PLAY', color: 'var(--amber-glow)', icon: Clock },
+  playing: { label: 'PLAYING', color: 'var(--amber-glow)', icon: Clock },
   given_up: { label: 'GIVEN UP', color: 'var(--danger)', icon: XCircle },
 };
 
 const STATUS_TRANSITIONS = {
   completed: 'to_play',
-  to_play: 'given_up',
+  to_play: 'playing',
+  playing: 'completed',
   given_up: 'completed',
 };
 
@@ -44,51 +46,64 @@ export default function GameCard({ game, onEdit, onDelete, onStatusChange, style
         </div>
       )}
 
-      <header className={styles.header}>
-        <div className={styles.statusBadge} style={{ color: config.color }}>
-          <StatusIcon size={12} />
-          <span>{config.label}</span>
-        </div>
-        <div className={`${styles.actions} ${showActions ? styles.actionsVisible : ''}`}>
-          {onEdit && (
-            <button onClick={onEdit} className={styles.actionBtn} title="Edit">
-              <Pencil size={14} />
-            </button>
-          )}
-          {onDelete && (
-            <button onClick={onDelete} className={`${styles.actionBtn} ${styles.deleteBtn}`} title="Delete">
-              <Trash2 size={14} />
-            </button>
-          )}
-        </div>
-      </header>
+      <div className={styles.content}>
+        <header className={styles.header}>
+          <div className={styles.statusBadge} style={{ color: config.color }}>
+            <StatusIcon size={12} />
+            <span>{config.label}</span>
+          </div>
+          <div className={`${styles.actions} ${showActions ? styles.actionsVisible : ''}`}>
+            {onEdit && (
+              <button onClick={onEdit} className={styles.actionBtn} title="Edit">
+                <Pencil size={14} />
+              </button>
+            )}
+            {game.status !== 'given_up' && onStatusChange && (
+              <button
+                onClick={() => onStatusChange('given_up')}
+                className={`${styles.actionBtn} ${styles.givenUpBtn}`}
+                title="Give Up"
+              >
+                <XCircle size={14} />
+              </button>
+            )}
+          </div>
+        </header>
 
-      <h3 className={styles.title}>{game.title}</h3>
+        <h3 className={styles.title}>{game.title}</h3>
 
-      {game.rating && (
-        <div className={styles.rating}>
-          <StarRating rating={game.rating} readonly size={16} />
-        </div>
-      )}
-
-      {game.comment && (
-        <p className={styles.comment}>{game.comment}</p>
-      )}
-
-      <footer className={styles.footer}>
-        <span className={styles.date}>Added {formatDate(game.created_at)}</span>
-        {onStatusChange && (
-          <button
-            onClick={() => onStatusChange(STATUS_TRANSITIONS[game.status])}
-            className={styles.statusBtn}
-            title={`Move to ${STATUS_CONFIG[STATUS_TRANSITIONS[game.status]].label}`}
-          >
-            <span className={styles.statusBtnLabel}>
-              {STATUS_CONFIG[STATUS_TRANSITIONS[game.status]].label}
-            </span>
-          </button>
+        {game.rating && (
+          <div className={styles.rating}>
+            <StarRating rating={game.rating} readonly size={16} />
+          </div>
         )}
-      </footer>
+
+        {game.comment && (
+          <p className={styles.comment}>{game.comment}</p>
+        )}
+
+        <footer className={styles.footer}>
+          <span className={styles.date}>Added {formatDate(game.created_at)}</span>
+          {game.status === 'to_play' && onStatusChange && (
+            <button
+              onClick={() => onStatusChange('playing')}
+              className={styles.completeBtn}
+              title="Start Playing"
+            >
+              <span className={styles.statusBtnLabel}>PLAYING</span>
+            </button>
+          )}
+          {game.status === 'playing' && onStatusChange && (
+            <button
+              onClick={() => onStatusChange('completed')}
+              className={styles.completeBtn}
+              title="Mark as Completed"
+            >
+              <span className={styles.statusBtnLabel}>COMPLETE</span>
+            </button>
+          )}
+        </footer>
+      </div>
 
       <div className={styles.cornerTL} />
       <div className={styles.cornerBR} />

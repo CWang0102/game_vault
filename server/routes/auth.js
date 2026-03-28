@@ -90,7 +90,6 @@ router.post('/login', loginValidation, async (req, res, next) => {
 
     res.json({
       user: { id: user.id, email: user.email, role: user.role, status: user.status },
-      token, // Still return token for clients that use Authorization header
     });
   } catch (err) {
     next(err);

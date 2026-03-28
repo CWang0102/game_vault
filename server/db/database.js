@@ -32,12 +32,15 @@ export async function initDatabase() {
 
     CREATE TABLE IF NOT EXISTS games (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
       title TEXT NOT NULL,
       status TEXT CHECK(status IN ('completed', 'to_play', 'given_up', 'playing')) DEFAULT 'to_play',
       rating INTEGER CHECK(rating >= 1 AND rating <= 5),
       comment TEXT,
+      cover_url TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
   `);
 
@@ -55,12 +58,12 @@ export function saveDatabase() {
 
 export async function seedDefaultUser() {
   const email = 'root@localhost';
-  const existingUser = db.exec(`SELECT * FROM users WHERE email = '${email}'`);
+  const existingUser = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
 
-  if (existingUser.length === 0 || existingUser[0].values.length === 0) {
+  if (!existingUser) {
     const passwordHash = await bcrypt.hash('root', 10);
-    db.run('INSERT INTO users (email, password_hash, role, status) VALUES (?, ?, ?, ?)',
-      [email, passwordHash, 'root', 'approved']);
+    db.prepare('INSERT INTO users (email, password_hash, role, status) VALUES (?, ?, ?, ?)')
+      .run(email, passwordHash, 'root', 'approved');
     saveDatabase();
     console.log('Created default root user: root@localhost / root');
   }

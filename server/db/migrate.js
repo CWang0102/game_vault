@@ -27,32 +27,41 @@ export async function runMigrations() {
     // Column may already exist in some DBs
   }
 
-  // 3. Handle games table - check if user_id column exists
+  // 3. Handle games table - add user_id if missing and add 'playing' status
   try {
     const tableInfo = db.prepare('PRAGMA table_info(games)').all();
     const hasUserId = tableInfo.some(col => col.name === 'user_id');
+    const hasPlayingStatus = tableInfo.some(col => col.name === 'status');
 
-    if (hasUserId) {
-      console.log('Migrating games table to shared collection...');
+    if (!hasUserId) {
+      console.log('Migrating games table to add user_id column...');
 
-      // Create new games table without user_id
+      // Get root user id for migration
+      const rootUser = db.prepare('SELECT id FROM users WHERE role = ?').get('root');
+
+      // Create new games table with user_id
       db.prepare(`
         CREATE TABLE games_new (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER NOT NULL,
           title TEXT NOT NULL,
-          status TEXT CHECK(status IN ('completed', 'to_play', 'given_up')) DEFAULT 'to_play',
+          status TEXT CHECK(status IN ('completed', 'to_play', 'given_up', 'playing')) DEFAULT 'to_play',
           rating INTEGER CHECK(rating >= 1 AND rating <= 5),
           comment TEXT,
+          cover_url TEXT,
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )
       `).run();
 
-      // Copy data (user_id is not copied)
-      db.prepare(`
-        INSERT INTO games_new (title, status, rating, comment, created_at, updated_at)
-        SELECT title, status, rating, comment, created_at, updated_at FROM games
-      `).run();
+      // Copy data with user_id assigned to root user
+      if (rootUser) {
+        db.prepare(`
+          INSERT INTO games_new (user_id, title, status, rating, comment, cover_url, created_at, updated_at)
+          SELECT ?, title, status, rating, comment, cover_url, created_at, updated_at FROM games
+        `).run(rootUser.id);
+      }
 
       // Drop old table and rename
       db.prepare('DROP TABLE games').run();

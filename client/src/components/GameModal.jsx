@@ -191,26 +191,30 @@ export default function GameModal({ game, onSave, onClose }) {
             </div>
           </div>
 
-          <div className={styles.field}>
-            <label>RATING</label>
-            <div className={styles.ratingWrapper}>
-              <StarRating rating={rating} onChange={setRating} size={28} />
-              {rating > 0 && (
-                <span className={styles.ratingLabel}>{rating} / 5</span>
-              )}
-            </div>
-          </div>
+          {(status === 'completed' || status === 'given_up') && (
+            <>
+              <div className={styles.field}>
+                <label>RATING</label>
+                <div className={styles.ratingWrapper}>
+                  <StarRating rating={rating} onChange={setRating} size={28} />
+                  {rating > 0 && (
+                    <span className={styles.ratingLabel}>{rating} / 5</span>
+                  )}
+                </div>
+              </div>
 
-          <div className={styles.field}>
-            <label htmlFor="comment">YOUR THOUGHTS</label>
-            <textarea
-              id="comment"
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="What did you think? Any memorable moments, recommendations, or warnings?"
-              rows={4}
-            />
-          </div>
+              <div className={styles.field}>
+                <label htmlFor="comment">YOUR THOUGHTS</label>
+                <textarea
+                  id="comment"
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  placeholder="What did you think? Any memorable moments, recommendations, or warnings?"
+                  rows={4}
+                />
+              </div>
+            </>
+          )}
 
           <div className={styles.actions}>
             <button type="button" onClick={onClose} className={styles.cancelBtn}>
