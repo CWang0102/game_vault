@@ -39,6 +39,9 @@ export async function runMigrations() {
       // Get root user id for migration
       const rootUser = db.prepare('SELECT id FROM users WHERE role = ?').get('root');
 
+      // Clean up any leftover table from a previous failed migration
+      db.prepare('DROP TABLE IF EXISTS games_new').run();
+
       // Create new games table with user_id
       db.prepare(`
         CREATE TABLE games_new (
