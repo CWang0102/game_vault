@@ -85,6 +85,43 @@ export async function runMigrations() {
     console.error('Migration error (cover_url):', e.message);
   }
 
+  // 5. Remove user_id column from games (all users now share a common game library)
+  try {
+    const tableInfo = db.prepare('PRAGMA table_info(games)').all();
+    const hasUserId = tableInfo.some(col => col.name === 'user_id');
+    if (hasUserId) {
+      console.log('Migrating games table to remove user_id column...');
+
+      // Create new games table without user_id
+      db.prepare(`
+        CREATE TABLE games_new (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          title TEXT NOT NULL,
+          status TEXT CHECK(status IN ('completed', 'to_play', 'given_up', 'playing')) DEFAULT 'to_play',
+          rating INTEGER CHECK(rating >= 1 AND rating <= 5),
+          comment TEXT,
+          cover_url TEXT,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `).run();
+
+      // Copy data without user_id
+      db.prepare(`
+        INSERT INTO games_new (id, title, status, rating, comment, cover_url, created_at, updated_at)
+        SELECT id, title, status, rating, comment, cover_url, created_at, updated_at FROM games
+      `).run();
+
+      // Drop old table and rename
+      db.prepare('DROP TABLE games').run();
+      db.prepare('ALTER TABLE games_new RENAME TO games').run();
+
+      console.log('Games table migrated: user_id column removed');
+    }
+  } catch (e) {
+    console.error('Migration error (remove user_id):', e.message);
+  }
+
   saveDatabase();
   console.log('Migrations complete');
 }

@@ -1,7 +1,7 @@
 import express from 'express';
 import { body, param, query, validationResult } from 'express-validator';
 import { getDb } from '../db/database.js';
-import { authenticateToken } from '../middleware/auth.js';
+import { authenticateToken, requireRoot } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -50,7 +50,7 @@ const listValidation = [
   query('search').optional().isString(),
 ];
 
-// List games - only for current user
+// List games - all users see the same games
 router.get('/', listValidation, (req, res, next) => {
   try {
     const errors = validationResult(req);
@@ -59,10 +59,9 @@ router.get('/', listValidation, (req, res, next) => {
     }
 
     const db = getDb();
-    const userId = req.user.id;
     const { status, search } = req.query;
-    let queryStr = 'SELECT * FROM games WHERE user_id = ?';
-    const params = [userId];
+    let queryStr = 'SELECT * FROM games';
+    const params = [];
     const conditions = [];
 
     if (status) {
@@ -76,7 +75,7 @@ router.get('/', listValidation, (req, res, next) => {
     }
 
     if (conditions.length > 0) {
-      queryStr += ' AND ' + conditions.join(' AND ');
+      queryStr += ' WHERE ' + conditions.join(' AND ');
     }
 
     queryStr += ' ORDER BY created_at DESC';
@@ -88,8 +87,8 @@ router.get('/', listValidation, (req, res, next) => {
   }
 });
 
-// Create game
-router.post('/', createGameValidation, (req, res, next) => {
+// Create game - root only
+router.post('/', requireRoot, createGameValidation, (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -97,14 +96,12 @@ router.post('/', createGameValidation, (req, res, next) => {
     }
 
     const db = getDb();
-    const userId = req.user.id;
     const { title, status, rating, comment, cover_url } = req.body;
 
     const result = db.prepare(`
-      INSERT INTO games (user_id, title, status, rating, comment, cover_url)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO games (title, status, rating, comment, cover_url)
+      VALUES (?, ?, ?, ?, ?)
     `).run(
-      userId,
       title.trim(),
       status || 'to_play',
       rating || null,
@@ -119,8 +116,8 @@ router.post('/', createGameValidation, (req, res, next) => {
   }
 });
 
-// Update game - only owner can update
-router.put('/:id', updateGameValidation, (req, res, next) => {
+// Update game - root only
+router.put('/:id', requireRoot, updateGameValidation, (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -128,11 +125,10 @@ router.put('/:id', updateGameValidation, (req, res, next) => {
     }
 
     const db = getDb();
-    const userId = req.user.id;
     const gameId = parseInt(req.params.id, 10);
     const { title, status, rating, comment, cover_url } = req.body;
 
-    const existingGame = db.prepare('SELECT * FROM games WHERE id = ? AND user_id = ?').get(gameId, userId);
+    const existingGame = db.prepare('SELECT * FROM games WHERE id = ?').get(gameId);
     if (!existingGame) {
       return res.status(404).json({ error: 'Game not found' });
     }
@@ -145,15 +141,14 @@ router.put('/:id', updateGameValidation, (req, res, next) => {
           comment = COALESCE(?, comment),
           cover_url = COALESCE(?, cover_url),
           updated_at = CURRENT_TIMESTAMP
-      WHERE id = ? AND user_id = ?
+      WHERE id = ?
     `).run(
       title?.trim() || null,
       status || null,
       rating || null,
       comment?.trim() || null,
       cover_url !== undefined ? (cover_url || null) : null,
-      gameId,
-      userId
+      gameId
     );
 
     const game = db.prepare('SELECT * FROM games WHERE id = ?').get(gameId);
@@ -163,23 +158,22 @@ router.put('/:id', updateGameValidation, (req, res, next) => {
   }
 });
 
-// Delete game - only owner can delete
-router.delete('/:id', (req, res, next) => {
+// Delete game - root only
+router.delete('/:id', requireRoot, (req, res, next) => {
   try {
     const db = getDb();
-    const userId = req.user.id;
     const gameId = parseInt(req.params.id, 10);
 
     if (isNaN(gameId)) {
       return res.status(400).json({ error: 'Invalid game ID' });
     }
 
-    const existingGame = db.prepare('SELECT * FROM games WHERE id = ? AND user_id = ?').get(gameId, userId);
+    const existingGame = db.prepare('SELECT * FROM games WHERE id = ?').get(gameId);
     if (!existingGame) {
       return res.status(404).json({ error: 'Game not found' });
     }
 
-    db.prepare('DELETE FROM games WHERE id = ? AND user_id = ?').run(gameId, userId);
+    db.prepare('DELETE FROM games WHERE id = ?').run(gameId);
     res.json({ success: true });
   } catch (err) {
     next(err);
