@@ -2,7 +2,6 @@ import initSqlJs from 'sql.js';
 import { readFileSync, writeFileSync, renameSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import bcrypt from 'bcryptjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -58,23 +57,6 @@ export function saveDatabase() {
   }
 }
 
-export async function seedDefaultUser() {
-  const email = 'root@localhost';
-  const existingUser = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
-
-  if (!existingUser) {
-    const password = process.env.ROOT_PASSWORD || 'root';
-    const passwordHash = await bcrypt.hash(password, 10);
-    db.prepare('INSERT INTO users (email, password_hash, role, status) VALUES (?, ?, ?, ?)')
-      .run(email, passwordHash, 'root', 'approved');
-    saveDatabase();
-    if (process.env.ROOT_PASSWORD) {
-      console.log('Created default root user: root@localhost');
-    } else {
-      console.warn('WARNING: Default root user created with password "root". Set ROOT_PASSWORD env var to use a secure password.');
-    }
-  }
-}
 
 function statementToObjects(stmt) {
   const columns = stmt.getColumnNames();

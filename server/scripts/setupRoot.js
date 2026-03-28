@@ -1,15 +1,15 @@
 import { getDb, initDatabase } from '../db/database.js';
+import { runMigrations } from '../db/migrate.js';
 import bcrypt from 'bcryptjs';
 import readline from 'readline';
 
 async function promptPassword() {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-  });
-
   return new Promise((resolve) => {
-    rl.question('Enter password for root user: ', (answer) => {
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    process.stdout.write('Enter password for root user: ');
+    rl._writeToOutput = () => {}; // suppress echo
+    rl.question('', (answer) => {
+      process.stdout.write('\n');
       rl.close();
       resolve(answer);
     });
@@ -35,6 +35,7 @@ async function main() {
   email = email.toLowerCase().trim();
 
   await initDatabase();
+  await runMigrations();
   const db = getDb();
 
   // Check if user exists

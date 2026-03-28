@@ -37,6 +37,7 @@ export default function Dashboard() {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to load games');
       setGames(data.games);
 
       const counts = { all: data.games.length, completed: 0, to_play: 0, given_up: 0, playing: 0 };

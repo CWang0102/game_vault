@@ -77,6 +77,31 @@
   animation: shake 0.3s ease-in-out;
 }
 
+.setupWarning {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(245, 166, 35, 0.08);
+  border: 1px solid var(--amber-dim);
+  color: var(--amber-glow);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.setupWarning svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.setupWarning code {
+  background: rgba(245, 166, 35, 0.15);
+  padding: 1px 5px;
+  font-family: var(--font-mono);
+}
+
 .success {
   display: flex;
   align-items: center;

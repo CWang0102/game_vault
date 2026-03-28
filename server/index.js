@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -12,12 +12,14 @@ import authRoutes from './routes/auth.js';
 import gamesRoutes from './routes/games.js';
 import usersRoutes from './routes/users.js';
 import igdbRoutes from './routes/igdb.js';
-import { initDatabase, seedDefaultUser } from './db/database.js';
+import { initDatabase, getDb } from './db/database.js';
 import { runMigrations } from './db/migrate.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+dotenv.config({ path: join(__dirname, '.env') });
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -75,7 +77,13 @@ app.use(morgan(isProduction ? 'combined' : 'dev'));
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  try {
+    const db = getDb();
+    const rootUser = db.prepare("SELECT id FROM users WHERE role = 'root' LIMIT 1").get();
+    res.json({ status: 'ok', timestamp: new Date().toISOString(), needsSetup: !rootUser });
+  } catch {
+    res.json({ status: 'ok', timestamp: new Date().toISOString(), needsSetup: false });
+  }
 });
 
 // Routes
@@ -99,10 +107,6 @@ app.use(errorHandler);
 async function start() {
   await initDatabase();
   await runMigrations();
-
-  if (!isProduction) {
-    await seedDefaultUser();
-  }
 
   app.listen(PORT, () => {
     console.log(`Game Vault server running on http://localhost:${PORT}`);

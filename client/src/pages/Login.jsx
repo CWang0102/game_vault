@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Gamepad2, Mail, Lock, AlertCircle } from 'lucide-react';
+import { Gamepad2, Mail, Lock, AlertCircle, Terminal } from 'lucide-react';
 import styles from './Auth.module.css';
 
 export default function Login() {
@@ -9,8 +9,16 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [needsSetup, setNeedsSetup] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    fetch('/api/health')
+      .then(r => r.json())
+      .then(data => { if (data.needsSetup) setNeedsSetup(true); })
+      .catch(() => {});
+  }, []);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -35,6 +43,13 @@ export default function Login() {
           <h1 className={styles.title}>GAME VAULT</h1>
           <p className={styles.subtitle}>Sign in to your collection</p>
         </div>
+
+        {needsSetup && (
+          <div className={styles.setupWarning}>
+            <Terminal size={16} />
+            <span>No admin account found. Run <code>npm run setup:root</code> on the server to complete setup.</span>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className={styles.form}>
           {error && (
