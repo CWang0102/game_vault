@@ -32,7 +32,7 @@ async function getTwitchToken() {
 // GET /api/igdb/search?q=<query>
 router.get('/search', async (req, res, next) => {
   try {
-    const q = (req.query.q || '').trim();
+    const q = (req.query.q || '').trim().replace(/"/g, '');
     if (!q) return res.json({ games: [] });
 
     const token = await getTwitchToken();
@@ -45,7 +45,7 @@ router.get('/search', async (req, res, next) => {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'text/plain',
       },
-      body: `search "${q}"; fields name,cover.url; limit 8;`,
+      body: `search "${q}"; fields id,name,cover.url; limit 8;`,
     });
 
     if (!igdbRes.ok) throw new Error('IGDB request failed');
@@ -54,6 +54,7 @@ router.get('/search', async (req, res, next) => {
     const games = (data || [])
       .filter((g) => g.name)
       .map((g) => ({
+        id: g.id,
         name: g.name,
         cover_url: g.cover?.url
           ? `https:${g.cover.url.replace('t_thumb', 't_cover_big')}`

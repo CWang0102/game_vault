@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Gamepad2 } from 'lucide-react';
+import { X, Gamepad2, Trash2 } from 'lucide-react';
 import StarRating from './StarRating';
 import styles from './GameModal.module.css';
 
@@ -10,7 +10,7 @@ const STATUS_OPTIONS = [
   { value: 'given_up', label: 'Given Up' },
 ];
 
-export default function GameModal({ game, onSave, onClose }) {
+export default function GameModal({ game, onSave, onClose, onDelete }) {
   const [title, setTitle] = useState('');
   const [status, setStatus] = useState('to_play');
   const [rating, setRating] = useState(0);
@@ -52,18 +52,14 @@ export default function GameModal({ game, onSave, onClose }) {
     }
     try {
       const token = localStorage.getItem('token');
-      console.log('[IGDB Search] Query:', query, 'Token exists:', !!token);
       const res = await fetch(`/api/igdb/search?q=${encodeURIComponent(query)}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log('[IGDB Search] Response status:', res.status);
       if (!res.ok) return;
       const data = await res.json();
-      console.log('[IGDB Search] Received games:', data.games?.length || 0);
       setSuggestions(data.games || []);
       setShowSuggestions(true);
-    } catch (err) {
-      console.error('[IGDB Search] Error:', err);
+    } catch {
       // silently fail — search is non-critical
     }
   }, []);
@@ -151,7 +147,7 @@ export default function GameModal({ game, onSave, onClose }) {
                 <ul className={styles.suggestions}>
                   {suggestions.map((suggestion) => (
                     <li
-                      key={suggestion.name}
+                      key={suggestion.id}
                       className={styles.suggestionItem}
                       onMouseDown={() => handleSuggestionClick(suggestion)}
                     >
@@ -217,6 +213,17 @@ export default function GameModal({ game, onSave, onClose }) {
           )}
 
           <div className={styles.actions}>
+            {game && onDelete && (
+              <button
+                type="button"
+                onClick={onDelete}
+                className={styles.deleteBtn}
+                disabled={loading}
+              >
+                <Trash2 size={16} />
+                DELETE
+              </button>
+            )}
             <button type="button" onClick={onClose} className={styles.cancelBtn}>
               CANCEL
             </button>

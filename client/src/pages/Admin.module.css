@@ -295,36 +295,7 @@
   gap: 8px;
 }
 
-.approveBtn, .rejectBtn, .promoteBtn, .demoteBtn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: none;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-}
-
-.approveBtn {
-  color: var(--success);
-  background: rgba(74, 222, 128, 0.1);
-}
-
-.approveBtn:hover {
-  background: rgba(74, 222, 128, 0.2);
-}
-
-.rejectBtn {
-  color: var(--danger);
-  background: rgba(248, 113, 113, 0.1);
-}
-
-.rejectBtn:hover {
-  background: rgba(248, 113, 113, 0.2);
-}
-
-.promoteBtn {
+.promoteBtn, .demoteBtn {
   width: auto;
   padding: 0 12px;
   gap: 6px;
@@ -357,6 +328,67 @@
 .noUsers {
   color: var(--text-muted);
   font-size: 0.9rem;
+}
+
+.statusBadge {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  padding: 3px 10px;
+  border-radius: 10px;
+  text-transform: uppercase;
+}
+
+.status_pending {
+  background: rgba(251, 191, 36, 0.15);
+  color: #FBBF24;
+  border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.status_approved {
+  background: rgba(74, 222, 128, 0.1);
+  color: #4ADE80;
+  border: 1px solid rgba(74, 222, 128, 0.25);
+}
+
+.status_rejected {
+  background: rgba(248, 113, 113, 0.1);
+  color: var(--danger);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+}
+
+.approveBtn {
+  padding: 0 12px;
+  height: 32px;
+  background: rgba(74, 222, 128, 0.1);
+  color: #4ADE80;
+  border: 1px solid rgba(74, 222, 128, 0.25);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.approveBtn:hover {
+  background: rgba(74, 222, 128, 0.2);
+}
+
+.rejectBtn {
+  padding: 0 12px;
+  height: 32px;
+  background: rgba(248, 113, 113, 0.1);
+  color: var(--danger);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.rejectBtn:hover {
+  background: rgba(248, 113, 113, 0.2);
 }
 
 /* Toast container */

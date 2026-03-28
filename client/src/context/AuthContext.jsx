@@ -6,6 +6,7 @@ const API_BASE = '/api';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [token, setToken] = useState(() => localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -14,10 +15,10 @@ export function AuthProvider({ children }) {
 
   async function validateToken() {
     try {
-      const token = localStorage.getItem('token');
+      const storedToken = localStorage.getItem('token');
       const res = await fetch(`${API_BASE}/auth/me`, {
         credentials: 'include',
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        headers: storedToken ? { Authorization: `Bearer ${storedToken}` } : {},
       });
       if (res.ok) {
         const data = await res.json();
@@ -25,6 +26,7 @@ export function AuthProvider({ children }) {
       } else if (res.status === 401 || res.status === 403) {
         // Token invalid - clear it
         localStorage.removeItem('token');
+        setToken(null);
       }
     } catch {
       // Network error or invalid token - that's okay for initial load
@@ -42,13 +44,12 @@ export function AuthProvider({ children }) {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Login failed');
-    // Server sets httpOnly cookie and also returns user data
     if (data.user) {
       setUser(data.user);
     }
-    // Save token to localStorage for API auth
     if (data.token) {
       localStorage.setItem('token', data.token);
+      setToken(data.token);
     }
     return data;
   }
@@ -62,6 +63,13 @@ export function AuthProvider({ children }) {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Registration failed');
+    if (data.token) {
+      localStorage.setItem('token', data.token);
+      setToken(data.token);
+    }
+    if (data.user) {
+      setUser(data.user);
+    }
     return data;
   }
 
@@ -74,11 +82,13 @@ export function AuthProvider({ children }) {
     } catch {
       // Ignore logout errors
     }
+    localStorage.removeItem('token');
+    setToken(null);
     setUser(null);
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, isRoot: user?.role === 'root' }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, logout, isRoot: user?.role === 'root' }}>
       {children}
     </AuthContext.Provider>
   );

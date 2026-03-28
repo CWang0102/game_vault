@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { getDb } from '../db/database.js';
 
 const isProduction = process.env.NODE_ENV === 'production';
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
@@ -34,11 +35,16 @@ export function requireRoot(req, res, next) {
     return res.status(401).json({ error: 'Authentication required' });
   }
 
-  if (req.user.role !== 'root') {
-    return res.status(403).json({ error: 'Root access required' });
+  try {
+    const db = getDb();
+    const user = db.prepare('SELECT role FROM users WHERE id = ?').get(req.user.id);
+    if (!user || user.role !== 'root') {
+      return res.status(403).json({ error: 'Root access required' });
+    }
+    next();
+  } catch (err) {
+    next(err);
   }
-
-  next();
 }
 
 export function generateToken(user) {

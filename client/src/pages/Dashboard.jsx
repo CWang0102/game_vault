@@ -31,7 +31,6 @@ export default function Dashboard() {
   const fetchGames = useCallback(async () => {
     try {
       const params = new URLSearchParams();
-      if (filter !== 'all') params.set('status', filter);
       if (search) params.set('search', search);
 
       const res = await fetch(`${API_BASE}/games?${params}`, {
@@ -42,18 +41,15 @@ export default function Dashboard() {
 
       const counts = { all: data.games.length, completed: 0, to_play: 0, given_up: 0, playing: 0 };
       data.games.forEach((g) => {
-        if (g.status === 'completed') counts.completed++;
-        else if (g.status === 'to_play') counts.to_play++;
-        else if (g.status === 'given_up') counts.given_up++;
-        else if (g.status === 'playing') counts.playing++;
+        if (g.status in counts) counts[g.status]++;
       });
-      setStatusCounts((prev) => ({ ...prev, ...counts, all: data.games.length }));
+      setStatusCounts(counts);
     } catch (err) {
       showToast('Failed to load games', 'error');
     } finally {
       setLoading(false);
     }
-  }, [token, filter, search]);
+  }, [token, search]);
 
   useEffect(() => {
     fetchGames();
@@ -105,6 +101,8 @@ export default function Dashboard() {
       });
       if (!res.ok) throw new Error('Failed to delete');
       showToast('Game removed from vault');
+      setModalOpen(false);
+      setEditingGame(null);
       fetchGames();
     } catch (err) {
       showToast(err.message, 'error');
@@ -138,6 +136,8 @@ export default function Dashboard() {
     setEditingGame(null);
     setModalOpen(true);
   }
+
+  const displayedGames = filter === 'all' ? games : games.filter((g) => g.status === filter);
 
   const completionRate = statusCounts.completed
     ? Math.round((statusCounts.completed / statusCounts.all) * 100)
@@ -222,7 +222,7 @@ export default function Dashboard() {
           <div className={styles.loading}>
             <div className={styles.loadingText}>LOADING VAULT...</div>
           </div>
-        ) : games.length === 0 ? (
+        ) : displayedGames.length === 0 ? (
           <div className={styles.empty}>
             <svg
               width="120"
@@ -257,7 +257,7 @@ export default function Dashboard() {
           </div>
         ) : (
           <div className={styles.grid}>
-            {games.map((game, index) => (
+            {displayedGames.map((game, index) => (
               <GameCard
                 key={game.id}
                 game={game}
@@ -285,6 +285,7 @@ export default function Dashboard() {
             setModalOpen(false);
             setEditingGame(null);
           }}
+          onDelete={editingGame ? () => handleDeleteGame(editingGame.id) : undefined}
         />
       )}
 

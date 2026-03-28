@@ -4,15 +4,8 @@ import { useAuth, API_BASE } from '../context/AuthContext';
 import GameCard from '../components/GameCard';
 import GameModal from '../components/GameModal';
 import Toast from '../components/Toast';
-import { Plus, LogOut, Gamepad2, Search, Trophy, Clock, XCircle, Shield, Users, CheckCircle, XCircle as RejectIcon, Crown } from 'lucide-react';
+import { Plus, LogOut, Gamepad2, Search, Trophy, Shield, Users, Crown } from 'lucide-react';
 import styles from './Admin.module.css';
-
-const STATUS_LABELS = {
-  all: 'ALL',
-  completed: 'COMPLETED',
-  to_play: 'TO PLAY',
-  given_up: 'GIVEN UP',
-};
 
 export default function Admin() {
   const { user, logout, token } = useAuth();
@@ -136,34 +129,6 @@ export default function Admin() {
     }
   }
 
-  async function handleApproveUser(id) {
-    try {
-      const res = await fetch(`${API_BASE}/users/${id}/approve`, {
-        method: 'PUT',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error('Failed to approve');
-      showToast('User approved');
-      fetchUsers();
-    } catch (err) {
-      showToast(err.message, 'error');
-    }
-  }
-
-  async function handleRejectUser(id) {
-    try {
-      const res = await fetch(`${API_BASE}/users/${id}/reject`, {
-        method: 'PUT',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error('Failed to reject');
-      showToast('User rejected');
-      fetchUsers();
-    } catch (err) {
-      showToast(err.message, 'error');
-    }
-  }
-
   async function handlePromoteToRoot(id) {
     try {
       const res = await fetch(`${API_BASE}/users/${id}/role`, {
@@ -200,6 +165,42 @@ export default function Admin() {
     }
   }
 
+  async function handleApprove(id) {
+    try {
+      const res = await fetch(`${API_BASE}/users/${id}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status: 'approved' }),
+      });
+      if (!res.ok) throw new Error('Failed to approve');
+      showToast('User approved');
+      fetchUsers();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  async function handleReject(id) {
+    try {
+      const res = await fetch(`${API_BASE}/users/${id}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status: 'rejected' }),
+      });
+      if (!res.ok) throw new Error('Failed to reject');
+      showToast('User rejected');
+      fetchUsers();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
   function openEditModal(game) {
     setEditingGame(game);
     setModalOpen(true);
@@ -209,10 +210,6 @@ export default function Admin() {
     setEditingGame(null);
     setModalOpen(true);
   }
-
-  const pendingUsers = users.filter(u => u.status === 'pending');
-  const approvedUsers = users.filter(u => u.status === 'approved');
-  const rejectedUsers = users.filter(u => u.status === 'rejected');
 
   return (
     <div className={styles.container}>
@@ -247,9 +244,6 @@ export default function Admin() {
         >
           <Users size={16} />
           USERS
-          {pendingUsers.length > 0 && (
-            <span className={styles.badge}>{pendingUsers.length}</span>
-          )}
         </button>
       </nav>
 
@@ -300,40 +294,13 @@ export default function Admin() {
           </>
         ) : (
           <>
-            {pendingUsers.length > 0 && (
-              <section className={styles.userSection}>
-                <h2 className={styles.sectionTitle}>
-                  <Clock size={16} />
-                  PENDING APPROVAL ({pendingUsers.length})
-                </h2>
-                <div className={styles.userList}>
-                  {pendingUsers.map(u => (
-                    <div key={u.id} className={styles.userCard}>
-                      <div className={styles.userInfo}>
-                        <span className={styles.userEmail}>{u.email}</span>
-                        <span className={styles.userMeta}>Registered {new Date(u.created_at).toLocaleDateString()}</span>
-                      </div>
-                      <div className={styles.userActions}>
-                        <button onClick={() => handleApproveUser(u.id)} className={styles.approveBtn} title="Approve">
-                          <CheckCircle size={18} />
-                        </button>
-                        <button onClick={() => handleRejectUser(u.id)} className={styles.rejectBtn} title="Reject">
-                          <RejectIcon size={18} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
-
             <section className={styles.userSection}>
               <h2 className={styles.sectionTitle}>
-                <CheckCircle size={16} />
-                APPROVED ({approvedUsers.length})
+                <Users size={16} />
+                ALL USERS ({users.length})
               </h2>
               <div className={styles.userList}>
-                {approvedUsers.map(u => (
+                {users.map(u => (
                   <div key={u.id} className={styles.userCard}>
                     <div className={styles.userInfo}>
                       <span className={styles.userEmail}>
@@ -345,45 +312,41 @@ export default function Admin() {
                       </span>
                     </div>
                     <div className={styles.userActions}>
-                      {u.role === 'user' ? (
-                        <button onClick={() => handlePromoteToRoot(u.id)} className={styles.promoteBtn} title="Promote to root">
-                          <Crown size={16} />
-                        </button>
-                      ) : (
-                        <button onClick={() => handleDemoteToUser(u.id)} className={styles.demoteBtn} title="Demote to user">
-                          Demote
+                      <span className={`${styles.statusBadge} ${styles[`status_${u.status}`]}`}>
+                        {u.status}
+                      </span>
+                      {u.status === 'pending' && (
+                        <>
+                          <button onClick={() => handleApprove(u.id)} className={styles.approveBtn}>
+                            Approve
+                          </button>
+                          <button onClick={() => handleReject(u.id)} className={styles.rejectBtn}>
+                            Reject
+                          </button>
+                        </>
+                      )}
+                      {u.status === 'approved' && (
+                        u.role === 'user' ? (
+                          <button onClick={() => handlePromoteToRoot(u.id)} className={styles.promoteBtn} title="Promote to root">
+                            <Crown size={16} />
+                          </button>
+                        ) : (
+                          <button onClick={() => handleDemoteToUser(u.id)} className={styles.demoteBtn} title="Demote to user">
+                            Demote
+                          </button>
+                        )
+                      )}
+                      {u.status === 'rejected' && (
+                        <button onClick={() => handleApprove(u.id)} className={styles.approveBtn}>
+                          Approve
                         </button>
                       )}
                     </div>
                   </div>
                 ))}
-                {approvedUsers.length === 0 && <p className={styles.noUsers}>No approved users.</p>}
+                {users.length === 0 && <p className={styles.noUsers}>No users yet.</p>}
               </div>
             </section>
-
-            {rejectedUsers.length > 0 && (
-              <section className={styles.userSection}>
-                <h2 className={styles.sectionTitle}>
-                  <XCircle size={16} />
-                  REJECTED ({rejectedUsers.length})
-                </h2>
-                <div className={styles.userList}>
-                  {rejectedUsers.map(u => (
-                    <div key={u.id} className={styles.userCard}>
-                      <div className={styles.userInfo}>
-                        <span className={styles.userEmail}>{u.email}</span>
-                        <span className={styles.userMeta}>Registered {new Date(u.created_at).toLocaleDateString()}</span>
-                      </div>
-                      <div className={styles.userActions}>
-                        <button onClick={() => handleApproveUser(u.id)} className={styles.approveBtn} title="Approve">
-                          <CheckCircle size={18} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
           </>
         )}
       </main>

@@ -161,6 +161,15 @@
   cursor: not-allowed;
 }
 
+.pendingText {
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 32px;
+}
+
 .footer {
   margin-top: 32px;
   text-align: center;

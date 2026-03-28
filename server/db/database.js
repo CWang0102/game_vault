@@ -1,5 +1,5 @@
 import initSqlJs from 'sql.js';
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, renameSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import bcrypt from 'bcryptjs';
@@ -52,7 +52,9 @@ export function saveDatabase() {
   if (db) {
     const data = db.export();
     const buffer = Buffer.from(data);
-    writeFileSync(DB_PATH, buffer);
+    const tmpPath = DB_PATH + '.tmp';
+    writeFileSync(tmpPath, buffer);
+    renameSync(tmpPath, DB_PATH);
   }
 }
 
@@ -61,11 +63,16 @@ export async function seedDefaultUser() {
   const existingUser = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
 
   if (!existingUser) {
-    const passwordHash = await bcrypt.hash('root', 10);
+    const password = process.env.ROOT_PASSWORD || 'root';
+    const passwordHash = await bcrypt.hash(password, 10);
     db.prepare('INSERT INTO users (email, password_hash, role, status) VALUES (?, ?, ?, ?)')
       .run(email, passwordHash, 'root', 'approved');
     saveDatabase();
-    console.log('Created default root user: root@localhost / root');
+    if (process.env.ROOT_PASSWORD) {
+      console.log('Created default root user: root@localhost');
+    } else {
+      console.warn('WARNING: Default root user created with password "root". Set ROOT_PASSWORD env var to use a secure password.');
+    }
   }
 }
 

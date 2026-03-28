@@ -15,7 +15,16 @@ const createGameValidation = [
   body('status').optional().isIn(gameStatusValues).withMessage('Invalid status value'),
   body('rating').optional({ nullable: true }).isInt({ min: 1, max: 5 }).withMessage('Rating must be between 1 and 5'),
   body('comment').optional({ nullable: true }).isString(),
-  body('cover_url').optional({ nullable: true }).isURL().withMessage('Invalid cover URL'),
+  body('cover_url').optional({ nullable: true }).custom((value) => {
+    if (!value) return true;
+    try {
+      const url = new URL(value);
+      if (url.hostname !== 'images.igdb.com') throw new Error();
+      return true;
+    } catch {
+      throw new Error('Cover image must be from images.igdb.com');
+    }
+  }),
 ];
 
 const updateGameValidation = [
@@ -24,7 +33,16 @@ const updateGameValidation = [
   body('status').optional().isIn(gameStatusValues).withMessage('Invalid status value'),
   body('rating').optional({ nullable: true }).isInt({ min: 1, max: 5 }).withMessage('Rating must be between 1 and 5'),
   body('comment').optional({ nullable: true }).isString(),
-  body('cover_url').optional({ nullable: true }).isURL().withMessage('Invalid cover URL'),
+  body('cover_url').optional({ nullable: true }).custom((value) => {
+    if (!value) return true;
+    try {
+      const url = new URL(value);
+      if (url.hostname !== 'images.igdb.com') throw new Error();
+      return true;
+    } catch {
+      throw new Error('Cover image must be from images.igdb.com');
+    }
+  }),
 ];
 
 const listValidation = [

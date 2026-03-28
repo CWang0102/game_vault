@@ -42,14 +42,11 @@ router.post('/register', registerValidation, async (req, res, next) => {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
-    const result = db.prepare(
+    db.prepare(
       'INSERT INTO users (email, password_hash, role, status) VALUES (?, ?, ?, ?)'
     ).run(email, passwordHash, 'user', 'pending');
 
-    res.status(201).json({
-      user: { id: result.lastInsertRowid, email, role: 'user', status: 'pending' },
-      message: 'Registration submitted. Please wait for admin approval.',
-    });
+    res.status(201).json({ pending: true });
   } catch (err) {
     next(err);
   }
@@ -76,11 +73,12 @@ router.post('/login', loginValidation, async (req, res, next) => {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    if (user.role !== 'root' && user.status !== 'approved') {
-      if (user.status === 'pending') {
-        return res.status(403).json({ error: 'Account pending approval' });
-      }
-      return res.status(403).json({ error: 'Account rejected' });
+    if (user.status === 'pending') {
+      return res.status(403).json({ error: 'Your account is awaiting admin approval' });
+    }
+
+    if (user.status === 'rejected') {
+      return res.status(403).json({ error: 'Your account has been rejected' });
     }
 
     const token = generateToken(user);

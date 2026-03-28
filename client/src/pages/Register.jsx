@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Gamepad2, Mail, Lock, AlertCircle, CheckCircle } from 'lucide-react';
+import { Gamepad2, Mail, Lock, AlertCircle, Clock } from 'lucide-react';
 import styles from './Auth.module.css';
 
 export default function Register() {
@@ -9,14 +9,14 @@ export default function Register() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [pending, setPending] = useState(false);
   const { register } = useAuth();
+  const navigate = useNavigate();
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
-    setSuccess('');
 
     if (password !== confirmPassword) {
       setError('Passwords do not match');
@@ -32,15 +32,42 @@ export default function Register() {
 
     try {
       const data = await register(email, password);
-      setSuccess(data.message || 'Registration submitted. Please wait for admin approval.');
-      setEmail('');
-      setPassword('');
-      setConfirmPassword('');
+      if (data.pending) {
+        setPending(true);
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
+  }
+
+  if (pending) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.card}>
+          <div className={styles.header}>
+            <Clock size={48} className={styles.logo} />
+            <h1 className={styles.title}>PENDING APPROVAL</h1>
+            <p className={styles.subtitle}>Your account is awaiting admin approval</p>
+          </div>
+          <p className={styles.pendingText}>
+            An admin will review your registration. You will be able to sign in once your account has been approved.
+          </p>
+          <div className={styles.footer}>
+            <Link to="/login">Back to sign in</Link>
+          </div>
+        </div>
+        <div className={styles.decoration}>
+          <div className={styles.cornerTL} />
+          <div className={styles.cornerTR} />
+          <div className={styles.cornerBL} />
+          <div className={styles.cornerBR} />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -60,12 +87,6 @@ export default function Register() {
             </div>
           )}
 
-          {success && (
-            <div className={styles.success}>
-              <CheckCircle size={16} />
-              <span>{success}</span>
-            </div>
-          )}
 
           <div className={styles.field}>
             <label htmlFor="email">EMAIL</label>
@@ -112,7 +133,7 @@ export default function Register() {
             </div>
           </div>
 
-          <button type="submit" className={styles.submitBtn} disabled={loading || !!success}>
+          <button type="submit" className={styles.submitBtn} disabled={loading}>
             {loading ? 'CREATING ACCOUNT...' : 'CREATE ACCOUNT'}
           </button>
         </form>
