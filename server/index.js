@@ -80,7 +80,9 @@ app.get('/api/health', (req, res) => {
   try {
     const db = getDb();
     const rootUser = db.prepare("SELECT id FROM users WHERE role = 'root' LIMIT 1").get();
-    res.json({ status: 'ok', timestamp: new Date().toISOString(), needsSetup: !rootUser });
+    // Only require root account setup in production
+    const needsSetup = isProduction && !rootUser;
+    res.json({ status: 'ok', timestamp: new Date().toISOString(), needsSetup });
   } catch {
     res.json({ status: 'ok', timestamp: new Date().toISOString(), needsSetup: false });
   }

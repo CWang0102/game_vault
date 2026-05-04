@@ -75,8 +75,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   color: var(--text-muted);
   transition: color 0.2s ease;
 }
@@ -314,29 +314,56 @@
 
 @media (max-width: 540px) {
   .overlay {
-    padding: 16px;
+    padding: 0;
     align-items: flex-end;
   }
 
   .modal {
     max-width: none;
-    animation: slideUp 0.3s ease-out;
+    border-radius: 16px 16px 0 0;
+    max-height: 90vh;
+    overflow-y: auto;
   }
 
   .header {
-    padding: 20px;
+    padding: 16px;
+  }
+
+  .headerIcon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .headerCover {
+    width: 40px;
+    height: 56px;
+  }
+
+  .title {
+    font-size: 10px;
   }
 
   .form {
-    padding: 20px;
+    padding: 16px;
+  }
+
+  .field input,
+  .field textarea,
+  .field select {
+    padding: 12px 14px;
+    font-size: 16px;
   }
 
   .actions {
     flex-direction: column;
+    gap: 10px;
   }
 
   .cancelBtn,
-  .saveBtn {
+  .saveBtn,
+  .deleteBtn {
     flex: none;
+    width: 100%;
+    padding: 14px;
   }
 }

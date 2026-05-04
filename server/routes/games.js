@@ -98,6 +98,12 @@ router.post('/', requireRoot, createGameValidation, (req, res, next) => {
     const db = getDb();
     const { title, status, rating, comment, cover_url } = req.body;
 
+    // Check for duplicate game (case-insensitive)
+    const existingGame = db.prepare('SELECT id FROM games WHERE LOWER(title) = LOWER(?)').get(title.trim());
+    if (existingGame) {
+      return res.status(409).json({ error: 'This game is already in the vault' });
+    }
+
     const result = db.prepare(`
       INSERT INTO games (title, status, rating, comment, cover_url)
       VALUES (?, ?, ?, ?, ?)

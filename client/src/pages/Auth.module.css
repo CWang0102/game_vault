@@ -259,3 +259,71 @@
     font-size: 16px;
   }
 }
+
+@media (max-width: 375px) {
+  .container {
+    padding: 16px;
+  }
+
+  .card {
+    padding: 24px 16px;
+  }
+
+  .header {
+    margin-bottom: 28px;
+  }
+
+  .logo {
+    margin-bottom: 12px;
+  }
+
+  .title {
+    font-size: 12px;
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
+  }
+
+  .form {
+    gap: 18px;
+  }
+
+  .inputWrapper input {
+    padding: 12px 14px 12px 44px;
+  }
+
+  .submitBtn {
+    padding: 14px;
+  }
+
+  .footer {
+    margin-top: 24px;
+    font-size: 0.85rem;
+  }
+
+  .cornerTL, .cornerTR, .cornerBL, .cornerBR {
+    width: 24px;
+    height: 24px;
+  }
+
+  .cornerTL {
+    top: 12px;
+    left: 12px;
+  }
+
+  .cornerTR {
+    top: 12px;
+    right: 12px;
+  }
+
+  .cornerBL {
+    bottom: 12px;
+    left: 12px;
+  }
+
+  .cornerBR {
+    bottom: 12px;
+    right: 12px;
+  }
+}

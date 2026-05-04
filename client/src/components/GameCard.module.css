@@ -211,3 +211,77 @@
   left: 8px;
   border-width: 0 0 1px 1px;
 }
+
+/* Mobile: always show actions for touch access */
+@media (max-width: 768px) {
+  .actions {
+    opacity: 1;
+    position: static;
+  }
+
+  .actionBtn {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .coverWrapper {
+    width: 100px;
+    height: 133px;
+  }
+
+  .title {
+    font-size: 1.1rem;
+  }
+
+  .comment {
+    -webkit-line-clamp: 2;
+  }
+}
+
+@media (max-width: 375px) {
+  .card {
+    flex-direction: column;
+    padding: 14px;
+    gap: 12px;
+    min-height: auto;
+  }
+
+  .coverWrapper {
+    width: 80px;
+    height: 107px;
+    align-self: flex-start;
+  }
+
+  .content {
+    gap: 8px;
+  }
+
+  .title {
+    font-size: 1rem;
+    padding-right: 0;
+  }
+
+  .comment {
+    -webkit-line-clamp: 2;
+    font-size: 0.85rem;
+  }
+
+  .footer {
+    padding-top: 8px;
+  }
+
+  .statusBtn {
+    padding: 4px 8px;
+  }
+
+  .statusBtnLabel {
+    font-size: 0.55rem;
+  }
+}

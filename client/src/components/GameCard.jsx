@@ -37,6 +37,7 @@ export default function GameCard({ game, onEdit, onDelete, onStatusChange, style
       }}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
+      onTouchStart={() => setShowActions(true)}
     >
       <div className={styles.statusBar} />
 

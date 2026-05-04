@@ -24,6 +24,7 @@ npm-debug.log*
 .idea/
 *.swp
 *.swo
+CLAUDE.md
 
 # OS
 .DS_Store

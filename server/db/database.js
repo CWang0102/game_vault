@@ -43,6 +43,17 @@ export async function initDatabase() {
     );
   `);
 
+  // Auto-create default root account in development if no users exist
+  if (process.env.NODE_ENV !== 'production') {
+    const result = db.exec('SELECT id FROM users LIMIT 1');
+    const hasUsers = result.length > 0 && result[0].values.length > 0;
+    if (!hasUsers) {
+      const bcrypt = (await import('bcryptjs')).default;
+      const hash = bcrypt.hashSync('root', 10);
+      db.run('INSERT INTO users (email, password_hash, role, status) VALUES (?, ?, ?, ?)', ['root@localhost', hash, 'root', 'approved']);
+    }
+  }
+
   saveDatabase();
   return db;
 }
