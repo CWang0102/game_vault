@@ -214,63 +214,93 @@
 
 /* Mobile: always show actions for touch access */
 @media (max-width: 768px) {
+  .card {
+    padding: 14px;
+    gap: 14px;
+    min-height: 0;
+  }
+
   .actions {
     opacity: 1;
     position: static;
   }
 
   .actionBtn {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
+  }
+
+  .coverWrapper {
+    width: 90px;
+    height: 120px;
+  }
+
+  .title {
+    font-size: 1.15rem;
+  }
+
+  .comment {
+    font-size: 0.9rem;
+    -webkit-line-clamp: 2;
+  }
+
+  .statusBadge {
+    font-size: 0.6rem;
   }
 }
 
 @media (max-width: 480px) {
   .card {
-    padding: 16px;
-    gap: 16px;
-  }
-
-  .coverWrapper {
-    width: 100px;
-    height: 133px;
-  }
-
-  .title {
-    font-size: 1.1rem;
-  }
-
-  .comment {
-    -webkit-line-clamp: 2;
-  }
-}
-
-@media (max-width: 375px) {
-  .card {
-    flex-direction: column;
-    padding: 14px;
+    padding: 12px;
     gap: 12px;
-    min-height: auto;
   }
 
   .coverWrapper {
     width: 80px;
     height: 107px;
-    align-self: flex-start;
-  }
-
-  .content {
-    gap: 8px;
   }
 
   .title {
-    font-size: 1rem;
+    font-size: 1.05rem;
+  }
+
+  .footer {
+    padding-top: 10px;
+  }
+
+  .statusBtn {
+    padding: 5px 8px;
+  }
+
+  .statusBtnLabel {
+    font-size: 0.58rem;
+  }
+}
+
+@media (max-width: 375px) {
+  .card {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .coverWrapper {
+    width: 70px;
+    height: 93px;
+    border-radius: 3px;
+  }
+
+  .content {
+    gap: 6px;
+  }
+
+  .title {
+    font-size: 0.95rem;
     padding-right: 0;
   }
 
   .comment {
     -webkit-line-clamp: 2;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
   }
 
   .footer {
@@ -278,10 +308,15 @@
   }
 
   .statusBtn {
-    padding: 4px 8px;
+    padding: 4px 6px;
   }
 
   .statusBtnLabel {
     font-size: 0.55rem;
+  }
+
+  .actionBtn {
+    width: 36px;
+    height: 36px;
   }
 }
