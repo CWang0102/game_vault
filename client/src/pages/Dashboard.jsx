@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth, API_BASE } from '../context/AuthContext';
 import GameCard from '../components/GameCard';
 import GameModal from '../components/GameModal';
+import StatusConfirmModal from '../components/StatusConfirmModal';
 import Toast from '../components/Toast';
 import { Plus, LogOut, Gamepad2, Search, Trophy, Clock, XCircle, Shield } from 'lucide-react';
 import styles from './Dashboard.module.css';
@@ -27,6 +28,7 @@ export default function Dashboard() {
   const [editingGame, setEditingGame] = useState(null);
   const [toasts, setToasts] = useState([]);
   const [statusCounts, setStatusCounts] = useState(STATUS_COUNTS_INITIAL);
+  const [confirmModal, setConfirmModal] = useState(null);
 
   const fetchGames = useCallback(async () => {
     try {
@@ -110,7 +112,16 @@ export default function Dashboard() {
     }
   }
 
-  async function handleStatusChange(id, newStatus) {
+  function handleStatusChange(id, newStatus) {
+    if (newStatus === 'completed' || newStatus === 'given_up') {
+      const game = games.find((g) => g.id === id);
+      setConfirmModal({ id, game, newStatus });
+    } else {
+      handleDirectStatusChange(id, newStatus);
+    }
+  }
+
+  async function handleDirectStatusChange(id, newStatus, rating = null, comment = null) {
     try {
       const res = await fetch(`${API_BASE}/games/${id}`, {
         method: 'PUT',
@@ -118,7 +129,11 @@ export default function Dashboard() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({
+          status: newStatus,
+          rating: rating || null,
+          comment: comment?.trim() || null,
+        }),
       });
       if (!res.ok) throw new Error('Failed to update status');
       showToast(`Status updated to ${STATUS_LABELS[newStatus]}`);
@@ -126,6 +141,16 @@ export default function Dashboard() {
     } catch (err) {
       showToast(err.message, 'error');
     }
+  }
+
+  function handleConfirmStatus({ rating, comment }) {
+    const { id, newStatus } = confirmModal;
+    setConfirmModal(null);
+    handleDirectStatusChange(id, newStatus, rating, comment);
+  }
+
+  function handleCancelConfirm() {
+    setConfirmModal(null);
   }
 
   function openEditModal(game) {
@@ -287,6 +312,15 @@ export default function Dashboard() {
             setEditingGame(null);
           }}
           onDelete={editingGame ? () => handleDeleteGame(editingGame.id) : undefined}
+        />
+      )}
+
+      {confirmModal && (
+        <StatusConfirmModal
+          game={confirmModal.game}
+          newStatus={confirmModal.newStatus}
+          onConfirm={handleConfirmStatus}
+          onCancel={handleCancelConfirm}
         />
       )}
 
