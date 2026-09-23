@@ -1,22 +1,60 @@
+.wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .container {
   display: flex;
   gap: 4px;
 }
 
+.value {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--amber-glow);
+  font-variant-numeric: tabular-nums;
+  min-width: 4.5em;
+}
+
 .star {
+  position: relative;
   color: var(--text-muted);
-  transition: color 0.15s ease, transform 0.15s ease;
+  transition: transform 0.15s ease;
   padding: 0;
   line-height: 1;
+  width: var(--star-size);
+  height: var(--star-size);
 }
 
 .star:not(:disabled):hover {
   transform: scale(1.15);
 }
 
-.filled {
+.starTrack {
+  position: relative;
+  display: block;
+  width: var(--star-size);
+  height: var(--star-size);
+}
+
+.starBase {
+  display: block;
+}
+
+.starFillClip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  overflow: hidden;
+  display: block;
   color: var(--amber-glow);
   filter: drop-shadow(0 0 4px rgba(245, 166, 35, 0.5));
+}
+
+.starFill {
+  display: block;
 }
 
 .readonly .star {

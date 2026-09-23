@@ -75,7 +75,7 @@ export default function GameCard({ game, onEdit, onDelete, onStatusChange, style
 
         {game.rating && (
           <div className={styles.rating}>
-            <StarRating rating={game.rating} readonly size={16} />
+            <StarRating rating={game.rating} readonly size={16} showValue />
           </div>
         )}
 

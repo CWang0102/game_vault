@@ -192,10 +192,7 @@ export default function GameModal({ game, onSave, onClose, onDelete }) {
               <div className={styles.field}>
                 <label>RATING</label>
                 <div className={styles.ratingWrapper}>
-                  <StarRating rating={rating} onChange={setRating} size={28} />
-                  {rating > 0 && (
-                    <span className={styles.ratingLabel}>{rating} / 5</span>
-                  )}
+                  <StarRating rating={rating} onChange={setRating} size={28} showValue />
                 </div>
               </div>
 

@@ -146,12 +146,6 @@
   padding: 4px 0;
 }
 
-.ratingLabel {
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
-  color: var(--amber-glow);
-}
-
 .textarea {
   padding: 12px 14px;
   background: var(--bg-elevated);

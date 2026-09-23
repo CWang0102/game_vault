@@ -10,10 +10,21 @@ router.use(authenticateToken);
 // Validation rules
 const gameStatusValues = ['completed', 'to_play', 'playing', 'given_up'];
 
+function isOneDecimalPlace(value) {
+  const num = Number(value);
+  return Math.abs(Math.round(num * 10) - num * 10) < 1e-6;
+}
+
+function normalizeRating(rating) {
+  if (rating === undefined || rating === null || rating === '') return null;
+  return Math.round(Number(rating) * 10) / 10;
+}
+
 const createGameValidation = [
   body('title').trim().notEmpty().withMessage('Game title is required'),
   body('status').optional().isIn(gameStatusValues).withMessage('Invalid status value'),
-  body('rating').optional({ nullable: true }).isInt({ min: 1, max: 5 }).withMessage('Rating must be between 1 and 5'),
+  body('rating').optional({ nullable: true }).isFloat({ min: 1, max: 5 }).withMessage('Rating must be between 1 and 5')
+    .bail().custom(isOneDecimalPlace).withMessage('Rating must have at most 1 decimal place'),
   body('comment').optional({ nullable: true }).isString(),
   body('cover_url').optional({ nullable: true }).custom((value) => {
     if (!value) return true;
@@ -31,7 +42,8 @@ const updateGameValidation = [
   param('id').isInt().withMessage('Invalid game ID'),
   body('title').optional().trim().notEmpty().withMessage('Game title cannot be empty'),
   body('status').optional().isIn(gameStatusValues).withMessage('Invalid status value'),
-  body('rating').optional({ nullable: true }).isInt({ min: 1, max: 5 }).withMessage('Rating must be between 1 and 5'),
+  body('rating').optional({ nullable: true }).isFloat({ min: 1, max: 5 }).withMessage('Rating must be between 1 and 5')
+    .bail().custom(isOneDecimalPlace).withMessage('Rating must have at most 1 decimal place'),
   body('comment').optional({ nullable: true }).isString(),
   body('cover_url').optional({ nullable: true }).custom((value) => {
     if (!value) return true;
@@ -110,7 +122,7 @@ router.post('/', requireRoot, createGameValidation, (req, res, next) => {
     `).run(
       title.trim(),
       status || 'to_play',
-      rating || null,
+      normalizeRating(rating),
       comment?.trim() || null,
       cover_url || null
     );
@@ -151,7 +163,7 @@ router.put('/:id', requireRoot, updateGameValidation, (req, res, next) => {
     `).run(
       title?.trim() || null,
       status || null,
-      rating || null,
+      normalizeRating(rating),
       comment?.trim() || null,
       cover_url !== undefined ? (cover_url || null) : null,
       gameId

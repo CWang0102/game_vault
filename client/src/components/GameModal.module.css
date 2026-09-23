@@ -237,12 +237,6 @@
   padding: 8px 0;
 }
 
-.ratingLabel {
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
-  color: var(--amber-glow);
-}
-
 .actions {
   display: flex;
   gap: 12px;

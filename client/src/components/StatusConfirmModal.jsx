@@ -57,10 +57,7 @@ export default function StatusConfirmModal({ game, newStatus, onConfirm, onCance
           <div className={styles.field}>
             <label className={styles.fieldLabel}>RATING (OPTIONAL)</label>
             <div className={styles.ratingRow}>
-              <StarRating rating={rating} onChange={setRating} size={28} />
-              {rating > 0 && (
-                <span className={styles.ratingLabel}>{rating} / 5</span>
-              )}
+              <StarRating rating={rating} onChange={setRating} size={28} showValue />
             </div>
           </div>
 
