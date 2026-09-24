@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import StarRating from './StarRating';
 
@@ -72,8 +72,86 @@ describe('StarRating', () => {
     expect(screen.getByTestId('rating-value')).toHaveTextContent('3.4 / 5');
   });
 
-  it('shows a placeholder when there is no rating yet', () => {
+  it('shows a zeroed-out numeric value when there is no rating yet', () => {
     render(<StarRating rating={0} showValue />);
-    expect(screen.getByTestId('rating-value')).toHaveTextContent('—');
+    expect(screen.getByTestId('rating-value')).toHaveTextContent('0.0 / 5');
+  });
+
+  function mockContainerRect(width = 100) {
+    const container = screen.getByTestId('star-rating-container');
+    container.getBoundingClientRect = () => ({
+      left: 0,
+      right: width,
+      width,
+      top: 0,
+      bottom: 20,
+      height: 20,
+      x: 0,
+      y: 0,
+    });
+    return container;
+  }
+
+  it('commits a decimal value on a plain click (zero-distance drag)', () => {
+    const handleChange = vi.fn();
+    render(<StarRating onChange={handleChange} />);
+    const container = mockContainerRect(100);
+    // 100px wide container / 5 stars = 20px per star; clientX 44 -> raw 2.2 -> quantized 2.3
+    fireEvent.mouseDown(container, { clientX: 44 });
+    fireEvent.mouseUp(document, { clientX: 44 });
+    expect(handleChange).toHaveBeenCalledWith(2.3);
+  });
+
+  it('tracks a mouse drag continuously and commits the release position', () => {
+    const handleChange = vi.fn();
+    render(<StarRating onChange={handleChange} />);
+    const container = mockContainerRect(100);
+    fireEvent.mouseDown(container, { clientX: 4 });
+    fireEvent.mouseMove(document, { clientX: 44 });
+    fireEvent.mouseMove(document, { clientX: 84 });
+    fireEvent.mouseUp(document, { clientX: 84 });
+    expect(handleChange).toHaveBeenCalledWith(4.3);
+  });
+
+  it('tracks a touch drag continuously and commits the release position', () => {
+    const handleChange = vi.fn();
+    render(<StarRating onChange={handleChange} />);
+    const container = mockContainerRect(100);
+    fireEvent.touchStart(container, { touches: [{ clientX: 4 }] });
+    fireEvent.touchMove(document, { touches: [{ clientX: 64 }] });
+    fireEvent.touchEnd(document, { touches: [{ clientX: 64 }] });
+    expect(handleChange).toHaveBeenCalledWith(3.3);
+  });
+
+  it('toggles off via drag to the same value and immediately reflects 0 in the display', async () => {
+    // Regression test: the hover/drag preview (hoverRating) is only synced to
+    // the container prop on mouseleave, so a commit whose value diverges from
+    // the live preview (e.g. a toggle-off) must resync it itself, or the
+    // readout and fill keep showing the stale pre-commit preview value.
+    const handleChange = vi.fn();
+    const { rerender } = render(<StarRating rating={0} onChange={handleChange} showValue />);
+    const container = mockContainerRect(100);
+
+    fireEvent.mouseDown(container, { clientX: 44 });
+    // Let the rAF-batched hover preview flush, matching real pointer timing,
+    // so `hovering` is genuinely true (as it would be mid real interaction)
+    // when the commit below fires.
+    await act(async () => {
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+    });
+    fireEvent.mouseUp(document, { clientX: 44 });
+    expect(handleChange).toHaveBeenLastCalledWith(2.3);
+
+    // Simulate the parent re-rendering with the newly committed rating,
+    // as GameModal/StatusConfirmModal do via a controlled `rating` prop.
+    rerender(<StarRating rating={2.3} onChange={handleChange} showValue />);
+
+    fireEvent.mouseDown(container, { clientX: 44 });
+    await act(async () => {
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+    });
+    fireEvent.mouseUp(document, { clientX: 44 });
+    expect(handleChange).toHaveBeenLastCalledWith(0);
+    expect(screen.getByTestId('rating-value')).toHaveTextContent('0.0 / 5');
   });
 });

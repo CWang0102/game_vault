@@ -7,6 +7,8 @@
 .container {
   display: flex;
   gap: 4px;
+  touch-action: none;
+  user-select: none;
 }
 
 .value {
@@ -31,6 +33,11 @@
   transform: scale(1.15);
 }
 
+.container.dragging .star {
+  transform: none;
+  transition: none;
+}
+
 .starTrack {
   position: relative;
   display: block;
@@ -51,6 +58,7 @@
   display: block;
   color: var(--amber-glow);
   filter: drop-shadow(0 0 4px rgba(245, 166, 35, 0.5));
+  transition: width 0.08s ease-out;
 }
 
 .starFill {
